@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2eee4">
+<title>al_witify — MCQ Revision</title>
+<meta name="description" content="Interactive MCQ revision — Communication Skills — by al_witify">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2eee4; --card:#fbf9f3; --ink:#141414; --mute:#6f6a5f;
+  --ok:#1e9e55; --bad:#d9302c;
+  --hand:'Caveat','Segoe Print','Bradley Hand',cursive;
+  --ui:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  --wob:255px 14px 225px 14px / 14px 225px 14px 255px;
+  --wob2:14px 225px 14px 255px / 255px 14px 225px 14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  margin:0; min-height:100vh; color:var(--ink); font-family:var(--ui);
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.55),transparent 60%),
+    radial-gradient(ellipse at 50% 100%,rgba(120,100,60,.10),transparent 55%),
+    var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.55;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .30  0 0 0 0 .22  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.38'/></svg>");
+}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+#app{position:relative;z-index:1}
+.view{display:none}
+.view.on{display:block;animation:enter .35s ease both}
+.view.home.on{display:flex}
+@keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------- Home ---------- */
+.home{min-height:100vh;flex-direction:column;align-items:center;
+  padding:max(28px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom))}
+.brand{margin-top:clamp(24px,9vh,80px);text-align:center;user-select:none}
+.brand h1{
+  margin:0;font-family:var(--hand);font-weight:700;line-height:.95;letter-spacing:1px;
+  font-size:clamp(76px,26vw,150px);transform:rotate(-3deg);
+}
+.brand svg{width:min(78%,340px);height:auto;margin-top:-6px;overflow:visible}
+.brand path{fill:none;stroke:var(--ink);stroke-width:4;stroke-linecap:round;
+  stroke-dasharray:420;stroke-dashoffset:420;animation:draw 1.1s .3s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.tag{margin:14px 0 0;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
+.levels{width:100%;max-width:440px;margin-top:clamp(28px,7vh,56px);display:grid;gap:18px}
+.lv{
+  display:flex;align-items:center;gap:16px;width:100%;text-align:start;
+  padding:16px 18px;background:var(--card);border:2.5px solid var(--ink);border-radius:var(--wob);
+  box-shadow:4px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s;
+}
+.lv:nth-child(even){border-radius:var(--wob2)}
+.lv:active{transform:translate(3px,4px);box-shadow:1px 1px 0 var(--ink)}
+.lv .big{font-family:var(--hand);font-weight:700;font-size:54px;line-height:1;min-width:64px;text-align:center}
+.lv .info{flex:1;min-width:0}
+.lv .name{font-weight:700;font-size:15px;line-height:1.35}
+.lv .state{font-size:12.5px;color:var(--mute);margin-top:2px;direction:rtl;text-align:left}
+.mini{height:6px;margin-top:9px;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden;background:transparent}
+.mini i{display:block;height:100%;width:0;background:var(--ink);transition:width .5s}
+.toggles{margin-top:auto;padding-top:34px;display:flex;gap:12px}
+.tg{font-size:13px;padding:6px 14px;border:1.5px solid var(--ink);border-radius:var(--wob);background:var(--card);font-weight:600}
+.tg[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.sign{margin-top:16px;font-family:var(--hand);font-size:22px;color:var(--mute)}
+
+/* ---------- Quiz ---------- */
+.bar{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
+  padding:max(8px,env(safe-area-inset-top)) 14px 8px;
+  background:rgba(242,238,228,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border-bottom:2px solid var(--ink);
+}
+.back{width:34px;height:34px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:var(--wob);background:var(--card);font-size:19px;line-height:1;flex:none}
+.back:active{transform:scale(.92)}
+.track{flex:1;height:9px;border:1.8px solid var(--ink);border-radius:8px;overflow:hidden}
+.fill{height:100%;width:0;background:repeating-linear-gradient(45deg,#141414 0 3px,#3c3c3c 3px 5px);transition:width .45s cubic-bezier(.3,.8,.3,1)}
+.count{font-family:var(--hand);font-weight:700;font-size:21px;min-width:50px;text-align:right;flex:none}
+
+.feed{max-width:640px;margin:0 auto;padding:18px 14px max(60px,env(safe-area-inset-bottom))}
+.sec{font-family:var(--hand);font-weight:700;font-size:30px;margin:26px 4px 6px;position:relative;display:inline-block}
+.sec::after{content:"";position:absolute;left:0;right:-8px;bottom:2px;height:4px;background:var(--ink);border-radius:4px;transform:rotate(-.8deg);opacity:.85}
+.card{
+  margin-top:16px;padding:18px 16px 16px;background:var(--card);
+  border:2.5px solid var(--ink);border-radius:var(--wob);
+  box-shadow:3px 4px 0 rgba(20,20,20,.9);
+}
+.card:nth-of-type(even){border-radius:var(--wob2)}
+.qmeta{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--mute);margin-bottom:8px;direction:ltr}
+.qmeta b{font-family:var(--hand);font-size:22px;color:var(--ink);line-height:1}
+.qtext{font-weight:700;font-size:17px;line-height:1.55;margin:0 0 6px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{
+  display:flex;align-items:flex-start;gap:12px;width:100%;text-align:start;
+  padding:11px 13px;border:2px solid var(--ink);border-radius:var(--wob);background:rgba(255,255,255,.55);
+  font-size:15.5px;line-height:1.5;transition:transform .1s,border-color .2s,background .2s,opacity .25s;
+}
+.opt:nth-child(even){border-radius:var(--wob2)}
+.opt:not(.locked):active{transform:scale(.985);background:#fff}
+.opt .bd{
+  flex:none;width:28px;height:28px;display:grid;place-items:center;border:1.8px solid currentColor;border-radius:50%;
+  font-family:var(--hand);font-weight:700;font-size:20px;line-height:1;margin-top:1px;transition:all .2s;
+}
+.opt.locked{cursor:default}
+.opt.locked:not(.correct):not(.wrong){opacity:.5}
+.opt.correct{border-color:var(--ok);border-width:3px;background:rgba(30,158,85,.09);padding:10px 12px}
+.opt.correct .bd{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);border-width:3px;background:rgba(217,48,44,.08);padding:10px 12px}
+.opt.wrong .bd{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.pop{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.97)}50%{transform:scale(1.015)}100%{transform:scale(1)}}
+.opt.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+.ex{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s ease}
+.ex.open{grid-template-rows:1fr}
+.ex>div{overflow:hidden}
+.exb{margin-top:14px;padding-top:12px;border-top:2px dashed var(--ink);direction:rtl;text-align:right;font-size:15.5px;line-height:1.95}
+.exb .ans{font-weight:700;margin-bottom:2px}
+.exb .ans span{font-family:var(--hand);font-size:24px;padding:0 6px;border:2px solid var(--ok);border-radius:var(--wob);color:var(--ok);margin-inline-start:4px}
+.exb .lbl{font-weight:700}
+
+.end{margin:34px 0 0;text-align:center;padding:26px 16px;border:2.5px dashed var(--ink);border-radius:var(--wob)}
+.end h3{margin:0 0 4px;font-family:var(--hand);font-size:42px;line-height:1}
+.end p{margin:0 0 16px;color:var(--mute);font-size:14px;direction:rtl}
+.end .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{padding:8px 20px;font-weight:700;font-size:15px;background:var(--card);border:2px solid var(--ink);border-radius:var(--wob);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.dark{background:var(--ink);color:var(--paper)}
+
+/* ---------- Hearts ---------- */
+.heart{position:fixed;z-index:999;pointer-events:none;line-height:1;will-change:transform,opacity;
+  filter:drop-shadow(0 0 1px rgba(0,0,0,.35))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.brand path{animation:none;stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Home -->
+  <section class="view home" id="home">
+    <div class="brand">
+      <h1>al_witify</h1>
+      <svg viewBox="0 0 340 24" aria-hidden="true"><path d="M6 14 C 60 2, 110 22, 170 12 S 280 4, 334 12"/></svg>
+      <p class="tag">Communication Skills · MCQ</p>
+    </div>
+    <div class="levels" id="levels"></div>
+    <div class="toggles">
+      <button class="tg" id="tgSound" aria-pressed="true">🔊 الصوت</button>
+      <button class="tg" id="tgVibe" aria-pressed="true">📳 الاهتزاز</button>
+    </div>
+    <div class="sign">by: al_witify</div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="view" id="quiz">
+    <div class="bar">
+      <button class="back" id="back" aria-label="رجوع">←</button>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="35"><div class="fill" id="fill"></div></div>
+      <div class="count" id="count">0/35</div>
+    </div>
+    <div class="feed" id="feed"></div>
+  </section>
+
+</div>
+
+<script>
+const LEVELS = [{"id": "L1", "title": "Communication Skills 1", "questions": [{"s": "Communication Basics", "q": "Communication is best defined as:", "o": ["The transfer of medicines between hospitals", "The art of transmitting information, ideas, and attitudes from one person to another", "A process limited to written instructions", "A one-way exchange without meaning"], "a": 1, "e": "التواصل هو نقل المعلومات والأفكار والمواقف بين الأشخاص، مو بس الكلام أو الكتابة."}, {"s": "Communication Basics", "q": "Communication involves:", "o": ["Meaningful interaction among human beings", "Only speaking to patients", "Only electronic messages", "Only receiving instructions"], "a": 0, "e": "المحاضرة تركز على التفاعل الهادف بين البشر."}, {"s": "Communication Basics", "q": "Which of the following can be communicated according to the definition?", "o": ["Information only", "Ideas only", "Attitudes only", "Information, ideas, and attitudes"], "a": 3, "e": "التعريف يذكر الثلاثة: المعلومات والأفكار والمواقف."}, {"s": "Therapeutic Communication", "q": "Therapeutic communication occurs mainly between:", "o": ["Two computers", "A healthcare professional and a patient (and possibly the family)", "Hospital managers only", "A patient and a pharmacy inventory system"], "a": 1, "e": "هو تواصل بين مقدم الرعاية والمريض، وممكن يشمل عائلة المريض."}, {"s": "Therapeutic Communication", "q": "Which is a goal of therapeutic communication?", "o": ["Reducing patient trust", "Enhancing patient comfort, safety, trust, and well-being", "Avoiding patient questions", "Replacing all medical examinations"], "a": 1, "e": "هدفه يحسّن راحة المريض وأمانه وثقته وصحته."}, {"s": "Therapeutic Communication", "q": "One main purpose of therapeutic communication is to:", "o": ["Collect healthcare information about the patient", "Prevent the patient from speaking", "Increase distractions", "Ignore patient behavior"], "a": 0, "e": "أول غرض هو جمع المعلومات الصحية عن المريض."}, {"s": "Therapeutic Communication", "q": "Providing healthcare-related education and training is an example of:", "o": ["Noise", "Feedback as a purpose of therapeutic communication", "Decoding failure", "Inappropriate medium"], "a": 1, "e": "من الأغراض الثلاثة تقديم معلومات صحية وتثقيف وتدريب للمريض."}, {"s": "Therapeutic Communication", "q": "A third purpose of therapeutic communication is to:", "o": ["Assess and, when appropriate, modify patient behavior", "Avoid assessing behavior", "Communicate only with family", "Use symbols without meaning"], "a": 0, "e": "الغرض الثالث تقييم سلوك المريض وتعديله إذا كان مناسب."}, {"s": "Therapeutic Communication", "q": "Which is NOT one of the three stated purposes of therapeutic communication?", "o": ["Collect patient information", "Provide healthcare education", "Assess patient behavior", "Eliminate the need for all treatment"], "a": 3, "e": "المحاضرة ذكرت جمع المعلومات والتثقيف وتقييم السلوك؛ ما قالت يلغي العلاج."}, {"s": "Sender & Encoding", "q": "The sender is the person, group, or organization that:", "o": ["Interprets the message only", "Initiates communication", "Always provides feedback", "Blocks the message"], "a": 1, "e": "الـ Sender هو اللي يبدأ عملية التواصل."}, {"s": "Sender & Encoding", "q": "Which factor can influence the sender’s message?", "o": ["Culture", "Knowledge", "Attitudes", "All of the above"], "a": 3, "e": "ثقافة وخبرة ومعرفة ومواقف المرسل كلها تؤثر على الرسالة."}, {"s": "Sender & Encoding", "q": "Encoding means:", "o": ["Interpreting an incoming message", "Translating information or ideas into an understandable message", "Removing the receiver", "Confirming feedback"], "a": 1, "e": "الـ Encoding يعني تحويل الفكرة أو المعلومة إلى رسالة مفهومة."}, {"s": "Sender & Encoding", "q": "Which can be used to encode a message?", "o": ["Words", "Gestures", "Images and symbols", "All of the above"], "a": 3, "e": "الترميز ممكن يصير بكلمات أو إشارات أو صور أو رموز."}, {"s": "Sender & Encoding", "q": "In the communication process, encoding is performed to:", "o": ["Make the message impossible to understand", "Prepare ideas in a form the recipient can understand", "Avoid selecting a channel", "Replace the receiver"], "a": 1, "e": "الهدف صياغة الأفكار بشكل يفهمه المستلم."}, {"s": "Transmission & Decoding", "q": "A channel is needed to:", "o": ["Transmit a message", "Create physical pain", "Prevent feedback", "Change the sender’s culture"], "a": 0, "e": "الـ Channel هو الوسيلة اللي تنتقل من خلالها الرسالة."}, {"s": "Transmission & Decoding", "q": "According to the lecture, which communication method is perhaps still the most effective?", "o": ["Face-to-face communication", "Unaddressed letters", "Silent messages only", "No communication"], "a": 0, "e": "المحاضرة تعتبر التواصل وجهاً لوجه ربما الأكثر فعالية."}, {"s": "Transmission & Decoding", "q": "In the digital age, increasing numbers of messages are transmitted using:", "o": ["Only gestures", "The Internet", "Only printed books", "Only face-to-face meetings"], "a": 1, "e": "المحاضرة تشير لزيادة استخدام الإنترنت بنقل الرسائل."}, {"s": "Transmission & Decoding", "q": "Ideally, the transmission medium should be:", "o": ["The most expensive option", "The one most comfortable to the receiver", "Chosen without considering the receiver", "Always written"], "a": 1, "e": "الأفضل تختار الوسيلة اللي يرتاح إلها المستلم."}, {"s": "Transmission & Decoding", "q": "Decoding refers to:", "o": ["The sender initiating communication", "The receiver processing or interpreting a transmitted message", "Selecting the sender’s culture", "Removing the channel"], "a": 1, "e": "الـ Decoding يعني المستلم يفسر الرسالة ويفهم معناها."}, {"s": "Receiver & Feedback", "q": "Successful communication occurs when:", "o": ["The sender speaks loudly", "The receiver correctly interprets the sender’s message", "No feedback is possible", "A message is transmitted without meaning"], "a": 1, "e": "النجاح يعتمد على فهم المستلم للرسالة بصورة صحيحة."}, {"s": "Receiver & Feedback", "q": "The receiver is:", "o": ["The individual who always starts communication", "The person or group to whom the message is directed", "The communication channel", "Any physical distraction"], "a": 1, "e": "الـ Receiver هو الشخص أو المجموعة الموجّهة إلهم الرسالة."}, {"s": "Receiver & Feedback", "q": "Which influences the receiver’s comprehension?", "o": ["Knowledge of the topic", "Receptivity to the message", "Trust between sender and receiver", "All of the above"], "a": 3, "e": "الفهم يتأثر بمعرفة المستلم واستعداده والثقة والعلاقة بين الطرفين."}, {"s": "Receiver & Feedback", "q": "A receiver who knows little about the topic may have difficulty because of:", "o": ["Topic knowledge level", "The sender’s job title alone", "The color of the room only", "The number of hospitals nearby"], "a": 0, "e": "قلة المعرفة بالموضوع ممكن تصعّب فهم الرسالة."}, {"s": "Receiver & Feedback", "q": "Feedback primarily:", "o": ["Closes the loop of the communication cycle", "Always starts the message", "Replaces encoding", "Prevents understanding"], "a": 0, "e": "الـ Feedback يكمل دورة التواصل ويرجع تأكيد للمرسل."}, {"s": "Receiver & Feedback", "q": "Without feedback, the sender cannot confirm that:", "o": ["The message was correctly interpreted", "The channel exists", "The sender has an idea", "Words can be used"], "a": 0, "e": "بدون رد من المستلم ما يگدر المرسل يتأكد من الفهم الصحيح."}, {"s": "Receiver & Feedback", "q": "Which is the most appropriate example of feedback?", "o": ["The patient indicates understanding after an explanation", "The clinician leaves without checking", "A loud noise interrupts the discussion", "The patient never receives the message"], "a": 0, "e": "لما المريض يبيّن أنه فهم، هذا Feedback واضح."}, {"s": "Communication Barriers", "q": "Which of the following is a barrier to communication?", "o": ["Noise", "Poor listening skills", "Language differences", "All of the above"], "a": 3, "e": "كل هاي مذكورة ضمن معوقات التواصل."}, {"s": "Communication Barriers", "q": "Choosing a communication method that does not suit the receiver is:", "o": ["Effective feedback", "An inappropriate medium", "Successful decoding", "A therapeutic purpose"], "a": 1, "e": "إذا الوسيلة مو مناسبة للمستلم تصير عائق بالتواصل."}, {"s": "Communication Barriers", "q": "Assumptions and misconceptions are classified as:", "o": ["Communication barriers", "Transmission channels", "Types of feedback", "Encoding tools"], "a": 0, "e": "الافتراضات الخاطئة وسوء الفهم من معوقات التواصل."}, {"s": "Communication Barriers", "q": "Which emotional factor may interfere with effective communication?", "o": ["Emotions", "Correct interpretation", "Clear feedback", "Suitable medium"], "a": 0, "e": "المشاعر ممكن تعيق الفهم والتواصل الفعّال."}, {"s": "Communication Barriers", "q": "A clinician and patient who do not share a common language may face:", "o": ["Language differences", "Successful encoding automatically", "Perfect feedback", "No communication barrier"], "a": 0, "e": "اختلاف اللغة من العوائق المذكورة بالمحاضرة."}, {"s": "Communication Barriers", "q": "A distracted listener may experience:", "o": ["A communication barrier", "Guaranteed understanding", "Better decoding in every case", "Automatic trust"], "a": 0, "e": "التشتت وضعف الإصغاء يخربطان استقبال الرسالة."}, {"s": "Noise & Clinical Examples", "q": "In communication, noise is best described as:", "o": ["Only loud sounds", "Anything that inhibits effective communication", "Only electronic interference", "Any message from the sender"], "a": 1, "e": "الـ Noise مو شرط صوت؛ أي شيء يعيق التواصل يعتبر Noise."}, {"s": "Noise & Clinical Examples", "q": "A patient’s pain prevents effective listening. This is an example of:", "o": ["Noise", "Feedback", "Encoding", "A communication channel"], "a": 0, "e": "الألم أو عدم الراحة ممكن يشتت المريض ويمنعه من الإصغاء."}, {"s": "Noise & Clinical Examples", "q": "Which condition is given in the lecture as a possible source of communication noise?", "o": ["Hearing or sight impairment", "Good topic knowledge", "Clear feedback", "Strong mutual trust"], "a": 0, "e": "ضعف السمع أو البصر ممكن يعيق استقبال الرسالة، ولهذا يعد Noise."}]}, {"id": "L2", "title": "Nonverbal Communication 2", "questions": [{"s": "Fundamentals", "q": "Nonverbal communication enhances the expression of ideas mainly through:", "o": ["Only written words", "Body language, gestures, facial expressions and tone of voice", "Laboratory investigations", "Medical prescriptions"], "a": 1, "e": "التواصل غير اللفظي يوصل الفكرة عن طريق حركات الجسم والتعابير ونبرة الصوت، مو بس الكلام."}, {"s": "Fundamentals", "q": "Which of the following is also included in the lecture definition of nonverbal communication?", "o": ["Pictures, icons and symbols", "Blood pressure readings only", "Spoken sentences only", "Written diagnoses only"], "a": 0, "e": "الملزمة تذكر الصور والأيقونات والرموز كوسائل غير لفظية."}, {"s": "Fundamentals", "q": "Nonverbal body language may be:", "o": ["Always intentional", "Always unintentional", "Both intentional and unintentional", "Only verbal"], "a": 2, "e": "الحركات ممكن تكون مقصودة أو تطلع بدون قصد."}, {"s": "Fundamentals", "q": "Communication between an HCP and a patient can begin:", "o": ["Only after introducing themselves", "Before either person speaks", "Only after taking history", "Only after examination"], "a": 1, "e": "الطبيب والمريض يلاحظون لغة جسم بعض حتى قبل الكلام."}, {"s": "Fundamentals", "q": "A seriously ill patient’s nonverbal behavior may reveal:", "o": ["Fear, anxiety, confusion or anger", "Only blood glucose level", "Only age", "Only diagnosis"], "a": 0, "e": "تعابير وحركات المريض قد تبين خوفه أو قلقه أو ارتباكه أو غضبه."}, {"s": "Fundamentals", "q": "The most effective HCPs have nonverbal messages that:", "o": ["Contradict verbal messages", "Match verbal messages", "Replace all verbal messages", "Are ignored"], "a": 1, "e": "الأفضل لغة الجسم توافق الكلام حتى ما يصير تناقض بالرسالة."}, {"s": "Fundamentals", "q": "One importance of nonverbal communication is that it:", "o": ["Always removes the need for speech", "Helps HCPs assess the patient’s emotional state", "Only works after treatment", "Cannot add meaning to speech"], "a": 1, "e": "تساعد الطبيب يفهم الحالة العاطفية للمريض ويتصرف حسبها."}, {"s": "Types and Clusters", "q": "Kinesics refers to communication involving:", "o": ["Physical distance", "Body movement", "Touch only", "Written notes"], "a": 1, "e": "Kinesics يعني حركات الجسم مثل الإيماءات وتعابير الوجه والنظر."}, {"s": "Types and Clusters", "q": "Proxemics mainly involves:", "o": ["Tone of voice", "Physical distance between people", "Blood tests", "Facial muscles"], "a": 1, "e": "Proxemics يتعلق بالمسافة والمكان بين الأشخاص أثناء التواصل."}, {"s": "Types and Clusters", "q": "Haptics is another term for:", "o": ["Gaze", "Touch", "Posture", "Encoding"], "a": 1, "e": "Haptics يعني اللمس كوسيلة تواصل غير لفظية."}, {"s": "Types and Clusters", "q": "Which is listed under kinesics in the lecture?", "o": ["Gestures, facial expressions and gaze patterns", "Personal space only", "Touch only", "Physical distance only"], "a": 0, "e": "هذني الثلاثة أقسام Kinesics المذكورة بالمحاضرة."}, {"s": "Types and Clusters", "q": "Nonverbal messages often appear in clusters, meaning:", "o": ["Only one signal is present", "Gestures, expressions and posture may convey the same message together", "Signals must be verbal", "Signals are always contradictory"], "a": 1, "e": "أكثر من إشارة مثل الوجه والحركة والوقفة ممكن كلها توصل نفس المعنى."}, {"s": "Gestures", "q": "Gestures are best described as:", "o": ["Body movements used instead of or together with words", "Only sounds", "Only written symbols", "Only eye movements"], "a": 0, "e": "Gestures هي حركات الجسم اللي تستبدل الكلمات أو ترافقها."}, {"s": "Gestures", "q": "Gestures are especially useful when:", "o": ["Speech is ineffective because of a language barrier", "The message is always simple", "No one is listening", "The HCP wishes to avoid all communication"], "a": 0, "e": "إذا أكو حاجز لغة، الإشارة ممكن تساعد على إيصال المعنى."}, {"s": "Gestures", "q": "An extended hand held outward may mean:", "o": ["Continue", "Stop or wait", "Welcome", "Confusion"], "a": 1, "e": "مد اليد للأمام ممكن يعني توقف أو انتظر."}, {"s": "Gestures", "q": "A finger placed across the lips commonly means:", "o": ["Speak louder", "Quiet", "Go ahead", "Pain"], "a": 1, "e": "الإصبع على الشفاه إشارة للسكوت."}, {"s": "Gestures", "q": "A head nod may indicate:", "o": ["Go ahead or continue", "Never speak", "Anger only", "Disgust only"], "a": 0, "e": "هز الرأس ممكن يشجع الشخص يكمل كلامه."}, {"s": "Gestures", "q": "Which is NOT a stated importance of gestures?", "o": ["Clarifying verbal content", "Holding listener attention", "Helping overcome communication barriers", "Guaranteeing the same meaning in every culture"], "a": 3, "e": "الإشارات تختلف حسب الثقافة، فمو مضمون معناها يكون نفسه بكل مكان."}, {"s": "Gestures", "q": "An intubated, mechanically ventilated patient is most likely to use:", "o": ["Head nods, mouthed words and gestures", "Long speeches", "Written essays only", "Telephone calls only"], "a": 0, "e": "المريض على جهاز التنفس غالباً يستخدم هز الرأس وحركة الشفاه والإشارات."}, {"s": "Gestures", "q": "Running a hand through one’s hair may be used to:", "o": ["Relieve stress", "Measure pulse", "Indicate temperature", "Replace eye contact"], "a": 0, "e": "المحاضرة تذكر تمرير اليد بالشعر كمثال على تخفيف التوتر."}, {"s": "Gestures", "q": "Leakage means:", "o": ["Deliberate spoken disclosure", "Involuntary gestures revealing true feelings", "A failure of hearing", "A written report"], "a": 1, "e": "Leakage يعني حركة لا إرادية تكشف المشاعر الحقيقية حتى لو الكلام يخالفها."}, {"s": "Gestures", "q": "A patient says he is not afraid of an injection but shakes his leg. This illustrates:", "o": ["Proxemics", "Leakage", "Monitoring", "Haptics"], "a": 1, "e": "يكول ما خايف لكن رجله تهتز؛ هاي علامة ممكن تكشف خوفه الحقيقي."}, {"s": "Gestures", "q": "Which gesture may signal boredom or impatience?", "o": ["Thumbs up", "Handshake", "Looking at one’s watch", "Fist bump"], "a": 2, "e": "النظر للساعة من الإشارات السلبية المذكورة بالمحاضرة."}, {"s": "Gestures", "q": "Why should HCPs be cautious when using gestures?", "o": ["Gestures are always meaningless", "Their meanings can vary across cultures", "They always replace speech", "They are forbidden"], "a": 1, "e": "الإشارة الإيجابية بثقافة ممكن تنفهم بشكل سلبي بثقافة ثانية."}, {"s": "Facial Expressions", "q": "Facial expressions are especially useful for conveying:", "o": ["Emotions", "Blood type", "Medication dosage", "Body temperature"], "a": 0, "e": "تعابير الوجه مصدر غني لمعرفة المشاعر."}, {"s": "Facial Expressions", "q": "According to the lecture, many facial expressions are:", "o": ["Entirely unique to each culture", "Biologically determined and relatively universal", "Always voluntary", "Unrelated to feelings"], "a": 1, "e": "المحاضرة تقول هواي تعابير وجه إلها أساس بيولوجي ومشتركة بين الثقافات."}, {"s": "Facial Expressions", "q": "A false smile typically does NOT involve the:", "o": ["Cheeks or eyes", "Mouth", "Lips", "Face at all"], "a": 0, "e": "الابتسامة المصطنعة غالباً ما تشرك الخدود والعيون مثل الحقيقية."}, {"s": "Facial Expressions", "q": "The listener’s facial expressions can help the speaker:", "o": ["Monitor reactions and adapt communication", "Avoid feedback", "Know laboratory results", "Eliminate all misunderstanding"], "a": 0, "e": "من وجه المستمع المتحدث يعرف إذا فهم أو مستغرب ويعدل شرحه."}, {"s": "Facial Expressions", "q": "During a patient conversation, a smile can act as:", "o": ["A reinforcer encouraging the patient to continue", "A sign to end every discussion", "A substitute for diagnosis", "An indication of anger"], "a": 0, "e": "الابتسامة تشجع المريض يحچي أكثر ويستمر."}, {"s": "Facial Expressions", "q": "Which action is recommended for HCPs?", "o": ["Show disgust freely", "Ignore signs of pain", "Control negative facial expressions and notice pain", "Avoid smiling in all situations"], "a": 2, "e": "المطلوب نسيطر على تعابير الغضب والاشمئزاز وننتبه لعلامات الألم."}, {"s": "Gaze Patterns", "q": "The three primary functions of gaze are:", "o": ["Monitoring, regulating and expressing", "Touching, listening and writing", "Encoding, decoding and noise", "Posture, distance and touch"], "a": 0, "e": "وظائف النظر الثلاث بالمحاضرة: مراقبة وتنظيم وتعبير."}, {"s": "Gaze Patterns", "q": "A nurse looking at a sick patient for clues about their condition is using gaze for:", "o": ["Monitoring", "Regulating", "Touch", "Leakage"], "a": 0, "e": "النظر هنا هدفه يراقب حالة المريض ويلتقط إشارات عنها."}, {"s": "Gaze Patterns", "q": "Looking at the listener after finishing speaking to signal their turn is:", "o": ["Expressing", "Regulating", "Leakage", "Proxemics"], "a": 1, "e": "النظر ينظم الدور بالحچي ويعطي إشارة للشخص الثاني يبدأ."}, {"s": "Gaze Patterns", "q": "According to the lecture, direct eye contact during a normal conversation occurs about:", "o": ["5–10%", "20–30%", "50–60%", "100%"], "a": 2, "e": "الرقم المهم للحفظ هو 50–60% من وقت المحادثة، مو طول الوقت."}, {"s": "Gaze Patterns", "q": "Which statement best matches the lecture’s advice about gaze?", "o": ["Maintain constant eye contact regardless of culture", "Avoid eye contact completely", "Use comfortable eye contact while considering gender and cultural norms", "Stare continuously to show authority"], "a": 2, "e": "خلي النظر مريح للطرفين وراعي جنس المريض والعادات الثقافية؛ التحديق المستمر مو مناسب."}]}, {"id": "L3", "title": "Nonverbal Communication — Continued", "questions": [{"s": "Proxemics & Personal Space", "q": "Proxemics primarily concerns:", "o": ["Tone of voice", "Physical distance between people", "Facial expressions", "Word choice"], "a": 1, "e": "الـ Proxemics يدرس المسافة الجسدية بين الأشخاص أثناء التواصل."}, {"s": "Proxemics & Personal Space", "q": "Which set is included under proxemics in the lecture?", "o": ["Gestures, gaze, facial expressions", "Voice, words, symbols", "Personal space, position, posture", "Feedback, encoding, decoding"], "a": 2, "e": "الملزمة تذكر personal space وposition وposture ضمن Proxemics."}, {"s": "Proxemics & Personal Space", "q": "Personal space is best defined as:", "o": ["A comfort zone around a person where intrusion is unwelcome", "The size of a hospital room", "The distance used only for speeches", "A zone shared by everyone equally"], "a": 0, "e": "المساحة الشخصية هي منطقة راحة حول الشخص، دخول الآخرين إلها بدون مراعاة قد يزعجه."}, {"s": "Proxemics & Personal Space", "q": "Personal space gives an individual a sense of:", "o": ["Speed, power and wealth", "Identity, security and control", "Fatigue and boredom", "Public recognition"], "a": 1, "e": "المساحة الشخصية تمنح إحساس بالهوية والأمان والسيطرة."}, {"s": "Proxemics & Personal Space", "q": "Invasion of personal space may lead to:", "o": ["Anxiety or loss of control", "Improved vision", "Guaranteed trust", "Better hearing"], "a": 0, "e": "إذا أحد اقتحم مساحة المريض ممكن يحس بقلق أو يفقد إحساسه بالسيطرة."}, {"s": "Proxemics & Personal Space", "q": "Why do patients often give up some personal space in healthcare settings?", "o": ["To improve public speaking", "To allow examination and treatment", "To avoid all communication", "To increase social distance"], "a": 1, "e": "لأن الفحص والعلاج أحياناً يحتاجان اقتراب الكادر الطبي من المريض."}, {"s": "Interaction Zones", "q": "Who described four interaction zones in The Silent Language?", "o": ["Sigmund Freud", "Edward T. Hall", "Florence Nightingale", "Ivan Pavlov"], "a": 1, "e": "إدوارد تي هول ذكر مناطق التفاعل الأربع بكتاب The Silent Language."}, {"s": "Interaction Zones", "q": "Which is the correct order of zones from nearest to farthest?", "o": ["Public, social, personal, intimate", "Personal, intimate, public, social", "Intimate, personal, social, public", "Social, personal, public, intimate"], "a": 2, "e": "الترتيب من الأقرب للأبعد: intimate ثم personal ثم social ثم public."}, {"s": "Interaction Zones", "q": "Intimate distance extends from touching to approximately:", "o": ["45 cm (18 inches)", "120 cm (4 feet)", "4 m (12 feet)", "8 m (26 feet)"], "a": 0, "e": "الـ Intimate من اللمس إلى تقريباً 45 سم."}, {"s": "Interaction Zones", "q": "Which zone do clinicians often need to enter during physical examination?", "o": ["Public", "Social", "Intimate", "Only personal"], "a": 2, "e": "الفحص السريري غالباً يحتاج دخول الـ intimate zone."}, {"s": "Interaction Zones", "q": "Personal distance is approximately:", "o": ["0–15 cm", "45–120 cm", "120 cm–4 m", "More than 10 m"], "a": 1, "e": "المسافة الشخصية بالملزمة من 45 إلى 120 سم."}, {"s": "Interaction Zones", "q": "Which interaction zone is commonly used when explaining a clinical procedure or discussing a personal matter?", "o": ["Public distance", "Social distance", "Personal distance", "Only intimate distance"], "a": 2, "e": "شرح الإجراء أو الحديث الشخصي غالباً يصير ضمن الـ personal distance."}, {"s": "Interaction Zones", "q": "Social distance extends approximately from:", "o": ["Touching to 45 cm", "45 to 120 cm", "120 cm to 4 m", "4 to 10 cm"], "a": 2, "e": "الـ Social distance تقريباً من 120 سم إلى 4 أمتار."}, {"s": "Interaction Zones", "q": "Which zone is common in business settings and talking with strangers?", "o": ["Social distance", "Intimate distance", "Personal distance only", "No distance"], "a": 0, "e": "المسافة الاجتماعية تستخدم بالأعمال والحديث مع الغرباء."}, {"s": "Interaction Zones", "q": "Public distance begins at approximately:", "o": ["45 cm", "120 cm", "2 m", "4 m (about 12 feet)"], "a": 3, "e": "الـ Public distance تبدأ تقريباً من 4 أمتار حسب نص المحاضرة."}, {"s": "Interaction Zones", "q": "Public distance is typically used by:", "o": ["Patients during blood sampling", "Public speakers and teachers", "Clinicians palpating an abdomen", "Two close friends whispering"], "a": 1, "e": "المحاضرة تذكر المعلمين والخطباء والسياسيين كمثال على public distance."}, {"s": "Interaction Zones", "q": "Why are far social and public distances often inappropriate for discussing a patient’s health?", "o": ["They always cause pain", "They may reduce intimacy and privacy", "They prevent writing", "They increase muscle tone"], "a": 1, "e": "المسافة البعيدة ممكن تقلل الخصوصية والقرب المطلوب بالحديث الصحي."}, {"s": "Interaction Zones", "q": "When deciding how close to stand to a patient, the HCP should:", "o": ["Use one fixed distance for every patient", "Ignore cultural norms", "Allow patient participation when possible", "Always choose intimate distance"], "a": 2, "e": "ماكو مسافة ثابتة لكل الحالات؛ الأفضل مراعاة راحة المريض ومشاركته بتحديدها."}, {"s": "Position & Orientation", "q": "A comfortable position suggested for speaking with a patient is approximately:", "o": ["An arm’s length away", "Across a large hall", "As far away as possible", "Directly behind the patient"], "a": 0, "e": "الملزمة تقترح تقريباً طول ذراع مع الحفاظ على راحة المريض."}, {"s": "Position & Orientation", "q": "Maintaining eye-level conversation helps the patient feel:", "o": ["Ignored", "Listened to and cared for", "Threatened", "Rushed"], "a": 1, "e": "لما الطبيب يحچي بمستوى عين المريض يحس المريض أنه مسموع ومهتمين بيه."}, {"s": "Position & Orientation", "q": "Standing over a seated patient may convey:", "o": ["Superiority", "Equality", "A request to leave", "Relief"], "a": 0, "e": "الوقوف فوق المريض ممكن ينفهم كنوع من التفوق أو السيطرة."}, {"s": "Position & Orientation", "q": "Moving away from the patient may be interpreted as:", "o": ["Empathy and acceptance", "Disinterest or impatience", "Greater trust", "Reassurance"], "a": 1, "e": "الابتعاد ممكن يوصل رسالة عدم اهتمام أو ملل أو نفاد صبر."}, {"s": "Position & Orientation", "q": "Face-to-face orientation generally increases:", "o": ["Patient satisfaction and understanding", "The need for public distance", "Patient isolation", "Misunderstanding in all cases"], "a": 0, "e": "التوجه وجهاً لوجه يزيد رضا المريض وفهمه، خصوصاً إذا كان قلقان."}, {"s": "Position & Orientation", "q": "Leaning slightly forward toward the patient conveys:", "o": ["Rejection", "Warmth, interest and caring", "Boredom", "Avoidance"], "a": 1, "e": "الميل الخفيف للأمام يدل على اهتمام ورعاية ويقوي العلاقة."}, {"s": "Posture", "q": "Posture refers to:", "o": ["Body and limb position plus muscle tone", "Only the movement of eyes", "Only speech volume", "Physical distance alone"], "a": 0, "e": "الـ Posture تشمل وضعية الجسم والأطراف وتوتر العضلات."}, {"s": "Posture", "q": "Which posture may suggest depression or discouragement?", "o": ["Rigid upright body with high tone", "Drooping head and sagging shoulders", "Leaning forward with legs drawn back", "Open arms and upright relaxed body"], "a": 1, "e": "الاكتئاب أو الإحباط قد يظهر بتدلي الرأس والكتفين وانخفاض توتر العضلات."}, {"s": "Posture", "q": "Anxiety may be reflected by:", "o": ["Increased muscle tone and rigid upright posture", "Very low muscle tone only", "Open relaxed posture", "Outstretched legs and boredom"], "a": 0, "e": "القلق قد يخلي العضلات مشدودة والجسم جامد ومستقيم."}, {"s": "Posture", "q": "Leaning forward with the legs drawn back may convey:", "o": ["Boredom", "Interest", "Rejection", "Indifference"], "a": 1, "e": "الميل للأمام مع سحب الرجلين للخلف يدل على الاهتمام حسب المحاضرة."}, {"s": "Posture", "q": "A lowered head, outstretched legs and backward leaning may indicate:", "o": ["Boredom", "High interest", "Confidence", "Warmth"], "a": 0, "e": "هاي الوضعية ممكن تدل على الملل."}, {"s": "Posture", "q": "Crossed arms and legs with the body turned away are examples of:", "o": ["Open posture", "Closed posture suggesting avoidance or rejection", "Intimate distance", "Positive gaze"], "a": 1, "e": "تشابك الذراعين والرجلين والابتعاد بالجسم يدل على وضعية مغلقة وتجنب."}, {"s": "Posture", "q": "Which posture is recommended for HCPs to show confidence and rapport?", "o": ["Rigid and closed", "Relaxed, open, with uncrossed arms and legs", "Turned away", "Leaning far backward"], "a": 1, "e": "الأفضل وضعية مرتاحة ومفتوحة، والأذرع والرجلين غير متقاطعة."}, {"s": "Touch (Haptics)", "q": "Which is an example of touch used for examination?", "o": ["Measuring blood pressure", "Giving a public lecture", "Maintaining public distance", "Using gaze to regulate turns"], "a": 0, "e": "قياس ضغط الدم مثال على اللمس أثناء الفحص."}, {"s": "Touch (Haptics)", "q": "Touch in healthcare may help to:", "o": ["Increase isolation", "Decrease anxiety and offer reassurance", "Replace all medical treatment", "Guarantee patient agreement"], "a": 1, "e": "اللمس المناسب قد يقلل القلق ويقدم طمأنينة وراحة."}, {"s": "Touch (Haptics)", "q": "Which is NOT listed as a positive function of touch in the lecture?", "o": ["Enhancing rapport", "Demonstrating empathy", "Supplementing verbal communication", "Ensuring every patient feels comfortable"], "a": 3, "e": "مو كل المرضى يرتاحون للمس؛ لذلك ما نكدر نضمن الراحة للجميع."}, {"s": "Touch (Haptics)", "q": "What is an important consideration before touching a patient?", "o": ["Everyone likes touch equally", "Cultural differences and patient comfort", "Touch is never needed in healthcare", "A handshake is compulsory"], "a": 1, "e": "لازم نراعي ثقافة المريض وراحته لأن اللمس قد يسبب إحراج أو تهديد للبعض."}]}];
+
+/* ---------- State & storage ---------- */
+const KEY = 'al_witify_quiz_v1';
+let store = { prog:{}, settings:{ sound:true, vibe:true } };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) store = { prog:s.prog||{}, settings:Object.assign(store.settings, s.settings||{}) }; } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} };
+const answersOf = id => (store.prog[id] = store.prog[id] || {});
+const $ = s => document.querySelector(s);
+
+/* ---------- Sound (ported from the reference file) ---------- */
+let actx = null;
+function ac(){
+  if (!store.settings.sound) return null;
+  if (!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){} }
+  if (actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function scratch(dur = 0.09, freq = 1400, gainVal = 0.18, type = 'bandpass'){
+  if (!ac()) return;
+  const len = Math.floor(actx.sampleRate * dur);
+  const buf = actx.createBuffer(1, len, actx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1) * (1 - i/len);
+  const src = actx.createBufferSource(); src.buffer = buf;
+  const filt = actx.createBiquadFilter(); filt.type = type; filt.frequency.value = freq; filt.Q.value = 1.2;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(gainVal, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+  src.connect(filt); filt.connect(g); g.connect(actx.destination); src.start();
+}
+function tick(freq = 880, dur = 0.07){
+  if (!ac()) return;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.08, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+  o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+}
+function playClick(){ scratch(0.07, 1800, 0.14); }
+function playCorrect(){ scratch(0.08, 1600, 0.16); setTimeout(() => { scratch(0.07, 2200, 0.13); tick(880, 0.08); }, 70); }
+function playWrong(){ scratch(0.14, 500, 0.16); setTimeout(() => scratch(0.08, 380, 0.12), 60); }
+function sfx(kind){ ({ tap:playClick, correct:playCorrect, wrong:playWrong })[kind](); }
+function vib(p){ if (store.settings.vibe && navigator.vibrate) try{ navigator.vibrate(p); }catch(e){} }
+
+/* ---------- Hearts ---------- */
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function hearts(x, y){
+  const n = reduced ? 3 : 6 + Math.floor(Math.random()*6);
+  for (let i = 0; i < n; i++){
+    const el = document.createElement('span');
+    el.className = 'heart';
+    el.textContent = Math.random() < .5 ? '🤍' : '🖤';
+    const size = 10 + Math.random()*12;
+    el.style.cssText = `left:${x}px;top:${y}px;font-size:${size}px`;
+    document.body.appendChild(el);
+    const dx = (Math.random()-.5)*130, dy = -(25 + Math.random()*95);
+    const rot = (Math.random()-.5)*90, dur = 650 + Math.random()*750;
+    const a = el.animate([
+      { transform:'translate(-50%,-50%) scale(.2) rotate(0deg)', opacity:0 },
+      { transform:`translate(calc(-50% + ${dx*.35}px),calc(-50% + ${dy*.6}px)) scale(1.1) rotate(${rot*.4}deg)`, opacity:1, offset:.28 },
+      { transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy + 30}px)) scale(.7) rotate(${rot}deg)`, opacity:0 }
+    ], { duration:dur, easing:'cubic-bezier(.2,.7,.3,1)', delay:Math.random()*90 });
+    a.onfinish = () => el.remove();
+  }
+}
+
+/* Tap detection: scrolling never triggers sound / hearts */
+let pd = null;
+addEventListener('pointerdown', e => { pd = { x:e.clientX, y:e.clientY, t:performance.now() }; }, { passive:true });
+addEventListener('pointercancel', () => { pd = null; }, { passive:true });
+addEventListener('pointerup', e => {
+  if (!pd) return;
+  const moved = Math.hypot(e.clientX-pd.x, e.clientY-pd.y), dt = performance.now()-pd.t;
+  pd = null;
+  if (moved > 12 || dt > 600) return;
+  hearts(e.clientX, e.clientY);
+  const live = e.target.closest && e.target.closest('.opt:not(.locked)');
+  if (!live){ sfx('tap'); vib(8); }
+}, { passive:true });
+
+/* ---------- Home ---------- */
+function renderHome(){
+  const box = $('#levels'); box.innerHTML = '';
+  LEVELS.forEach(L => {
+    const done = Object.keys(answersOf(L.id)).length, total = L.questions.length;
+    const st = done === 0 ? 'ابدأ' : done >= total ? 'تم ✓' : 'تابع — ' + done + ' / ' + total;
+    const b = document.createElement('button');
+    b.className = 'lv';
+    b.innerHTML = `<span class="big">${L.id}</span>
+      <span class="info"><div class="name">${L.title}</div><div class="state">${st}</div>
+      <div class="mini"><i style="width:${done/total*100}%"></i></div></span>`;
+    b.onclick = () => go(L.id);
+    box.appendChild(b);
+  });
+  $('#tgSound').setAttribute('aria-pressed', store.settings.sound);
+  $('#tgVibe').setAttribute('aria-pressed', store.settings.vibe);
+}
+$('#tgSound').onclick = e => { store.settings.sound = !store.settings.sound; save(); e.currentTarget.setAttribute('aria-pressed', store.settings.sound); };
+$('#tgVibe').onclick  = e => { store.settings.vibe  = !store.settings.vibe;  save(); e.currentTarget.setAttribute('aria-pressed', store.settings.vibe); };
+
+/* ---------- Quiz ---------- */
+let cur = null;
+const LET = ['A','B','C','D'];
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function updateBar(){
+  const total = cur.questions.length, done = Object.keys(answersOf(cur.id)).length;
+  $('#fill').style.width = (done/total*100) + '%';
+  $('#count').textContent = done + '/' + total;
+  $('.track').setAttribute('aria-valuenow', done);
+  $('.track').setAttribute('aria-valuemax', total);
+}
+
+function paint(card, q, chosen){
+  const opts = card.querySelectorAll('.opt');
+  opts.forEach((o, i) => {
+    o.classList.add('locked');
+    o.classList.toggle('correct', i === q.a);
+    o.classList.toggle('wrong', i === chosen && i !== q.a);
+    const bd = o.querySelector('.bd');
+    bd.textContent = i === q.a ? '✓' : (i === chosen ? '✕' : LET[i]);
+  });
+  card.querySelector('.ex').classList.add('open');
+}
+
+function renderQuiz(L){
+  cur = L;
+  const feed = $('#feed'); feed.innerHTML = '';
+  const ans = answersOf(L.id), total = L.questions.length;
+  let lastSec = null, firstOpen = null;
+  L.questions.forEach((q, qi) => {
+    if (q.s && q.s !== lastSec){
+      const h = document.createElement('div'); h.className = 'sec'; h.textContent = q.s; feed.appendChild(h);
+      feed.appendChild(document.createElement('br'));
+      lastSec = q.s;
+    }
+    const card = document.createElement('article'); card.className = 'card';
+    card.innerHTML = `
+      <div class="qmeta"><b>${String(qi+1).padStart(2,'0')} / ${total}</b><span>${esc(q.s||'')}</span></div>
+      <p class="qtext" dir="auto">${esc(q.q)}</p>
+      <div class="opts">${q.o.map((t,i)=>`<button class="opt" data-i="${i}"><span class="bd">${LET[i]}</span><span dir="auto">${esc(t)}</span></button>`).join('')}</div>
+      <div class="ex"><div><div class="exb">
+        <div class="ans">الإجابة الصحيحة: <span>${LET[q.a]}</span></div>
+        <div><span class="lbl">التوضيح:</span> ${esc(q.e)}</div>
+      </div></div></div>`;
+    card.querySelectorAll('.opt').forEach(btn => btn.onclick = () => choose(card, q, qi, +btn.dataset.i));
+    if (ans[qi] != null) paint(card, q, ans[qi]); else if (!firstOpen) firstOpen = card;
+    feed.appendChild(card);
+  });
+  const end = document.createElement('div'); end.className = 'end'; end.id = 'end';
+  end.innerHTML = `<h3>the end ✓</h3><p>أنهيت أسئلة هذا المستوى</p>
+    <div class="row"><button class="btn dark" id="endBack">العودة</button><button class="btn" id="endReset">إعادة المستوى</button></div>`;
+  feed.appendChild(end);
+  $('#endBack').onclick = goBack;
+  $('#endReset').onclick = () => { if (confirm('هل تريد مسح تقدمك في ' + L.id + ' والبدء من جديد؟')){ delete store.prog[L.id]; save(); renderQuiz(L); window.scrollTo(0,0); } };
+  updateBar();
+  // resume where the user stopped
+  const done = Object.keys(ans).length;
+  requestAnimationFrame(() => {
+    if (done === 0) return window.scrollTo(0, 0);
+    const t = firstOpen || end;
+    window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 70, behavior:'auto' });
+  });
+}
+
+function choose(card, q, qi, ci){
+  const ans = answersOf(cur.id);
+  if (ans[qi] != null) return;
+  ac();
+  ans[qi] = ci; save();
+  paint(card, q, ci);
+  const ok = ci === q.a, picked = card.querySelectorAll('.opt')[ci];
+  picked.classList.add(ok ? 'pop' : 'shake');
+  sfx(ok ? 'correct' : 'wrong');
+  vib(ok ? [14,45,22] : [38,40,24]);
+  updateBar();
+}
+
+/* ---------- Router ---------- */
+function show(id){
+  window.scrollTo(0,0); document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id)); }
+function route(force){
+  let L = null;
+  if (force !== undefined) L = force && LEVELS.find(l => l.id === force);
+  else { const m = location.hash.match(/^#\/(L\d+)$/); L = m && LEVELS.find(l => l.id === m[1]); }
+  if (L){ show('quiz'); renderQuiz(L); }
+  else { cur = null; show('home'); renderHome(); window.scrollTo(0,0); }
+}
+function go(id){
+  try { history.pushState({ app:1 }, '', '#/' + id); } catch(e){}
+  route(id);
+}
+function goBack(){
+  try {
+    if (history.state && history.state.app){ history.back(); return; }
+    history.replaceState(null, '', location.pathname + '#/');
+  } catch(e){}
+  route(null);
+}
+$('#back').onclick = goBack;
+addEventListener('popstate', () => route());
+route();
+</script>
+</body>
+</html>
